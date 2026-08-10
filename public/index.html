@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -13,7 +12,6 @@
     <title>Weather Dashboard</title>
 
     <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
@@ -25,7 +23,7 @@
             <h1>🌤️ Weather Dashboard</h1>
 
             <p>
-                Search for the current weather anywhere in the world.
+                Understand the weather and know what to wear.
             </p>
 
         </header>
@@ -87,13 +85,9 @@
 
                 <div>
 
-                    <h2 id="cityName">
-                        --
-                    </h2>
+                    <h2 id="cityName">--</h2>
 
-                    <p id="description">
-                        --
-                    </p>
+                    <p id="description">--</p>
 
                 </div>
 
@@ -183,6 +177,68 @@
                     </div>
 
                 </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- SMART ADVICE -->
+
+        <section
+            id="adviceCard"
+            class="advice-card hidden"
+        >
+
+            <div class="advice-header">
+
+                <span>🧠</span>
+
+                <div>
+
+                    <h2>Smart Weather Advice</h2>
+
+                    <p>
+                        What today's weather actually means
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="advice-section">
+
+                <h3>👕 What to Wear</h3>
+
+                <ul id="clothingAdvice"></ul>
+
+            </div>
+
+
+            <div class="advice-section">
+
+                <h3>🌤️ What It Means</h3>
+
+                <p id="weatherMeaning"></p>
+
+            </div>
+
+
+            <div class="advice-section">
+
+                <h3>⚠️ Outdoor Advice</h3>
+
+                <p id="outdoorAdvice"></p>
+
+            </div>
+
+
+            <div class="advice-section">
+
+                <h3>🏃 Activity Recommendation</h3>
+
+                <p id="activityAdvice"></p>
 
             </div>
 

@@ -178,7 +178,6 @@ body {
 
 #weatherIcon {
     width: 90px;
-
     height: 90px;
 }
 
@@ -236,6 +235,94 @@ body {
 
 .detail strong {
     font-size: 17px;
+}
+
+
+/* SMART ADVICE */
+
+.advice-card {
+    background: rgba(255, 255, 255, 0.97);
+
+    border-radius: 24px;
+
+    padding: 28px;
+
+    margin-top: 20px;
+
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.15);
+
+    animation: fadeIn 0.3s ease;
+}
+
+.advice-header {
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    padding-bottom: 20px;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.advice-header > span {
+    font-size: 35px;
+}
+
+.advice-header h2 {
+    font-size: 24px;
+
+    margin-bottom: 4px;
+}
+
+.advice-header p {
+    color: #667085;
+
+    font-size: 14px;
+}
+
+.advice-section {
+    padding: 20px 0;
+
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.advice-section:last-child {
+    border-bottom: none;
+
+    padding-bottom: 0;
+}
+
+.advice-section h3 {
+    font-size: 18px;
+
+    margin-bottom: 12px;
+}
+
+.advice-section p {
+    color: #475467;
+
+    line-height: 1.6;
+}
+
+#adviceCard ul {
+    list-style: none;
+
+    display: grid;
+
+    gap: 8px;
+}
+
+#adviceCard li {
+    background: #f5f7fa;
+
+    padding: 10px 13px;
+
+    border-radius: 10px;
+
+    color: #344054;
 }
 
 
@@ -318,21 +405,21 @@ footer {
     to {
         transform: rotate(360deg);
     }
-
 }
 
 @keyframes fadeIn {
 
     from {
         opacity: 0;
+
         transform: translateY(10px);
     }
 
     to {
         opacity: 1;
+
         transform: translateY(0);
     }
-
 }
 
 
@@ -356,7 +443,8 @@ footer {
         padding: 14px;
     }
 
-    .weather-card {
+    .weather-card,
+    .advice-card {
         padding: 22px;
     }
 
