@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Weather Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header>
+            <h1>🌤️ Weather Dashboard</h1>
+            <p>Current weather information</p>
+        </header>
+
+        <section id="weatherCard" class="weather-card">
+
+            <div class="weather-main">
+
+                <div>
+                    <h2 id="cityName">Loading...</h2>
+
+                    <p id="description">
+                        Getting weather information...
+                    </p>
+                </div>
+
+                <div class="temperature">
+
+                    <span id="temperature">
+                        --°C
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="weather-details">
+
+                <div class="detail">
+
+                    <span>🌡️</span>
+
+                    <p>
+                        Feels Like
+                        <strong id="feelsLike">--°C</strong>
+                    </p>
+
+                </div>
+
+                <div class="detail">
+
+                    <span>💧</span>
+
+                    <p>
+                        Humidity
+                        <strong id="humidity">--%</strong>
+                    </p>
+
+                </div>
+
+                <div class="detail">
+
+                    <span>💨</span>
+
+                    <p>
+                        Wind
+                        <strong id="wind">-- m/s</strong>
+                    </p>
+
+                </div>
+
+                <div class="detail">
+
+                    <span>🌡️</span>
+
+                    <p>
+                        Pressure
+                        <strong id="pressure">-- hPa</strong>
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <p id="errorMessage" class="error"></p>
+
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
