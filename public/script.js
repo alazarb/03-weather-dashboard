@@ -18,44 +18,47 @@ const humidity = document.getElementById("humidity");
 const wind = document.getElementById("wind");
 const pressure = document.getElementById("pressure");
 
+const sunrise = document.getElementById("sunrise");
+const sunset = document.getElementById("sunset");
+const lastUpdated = document.getElementById("lastUpdated");
+
 const clothingAdvice = document.getElementById("clothingAdvice");
 const weatherMeaning = document.getElementById("weatherMeaning");
+const humidityAdvice = document.getElementById("humidityAdvice");
+const windAdvice = document.getElementById("windAdvice");
 const outdoorAdvice = document.getElementById("outdoorAdvice");
 const activityAdvice = document.getElementById("activityAdvice");
 
 const celsiusButton = document.getElementById("celsiusButton");
 const fahrenheitButton = document.getElementById("fahrenheitButton");
 
-
 let currentWeather = null;
-
 let currentUnit = "C";
 
 
-/* SEARCH */
+/* =========================
+   SEARCH
+   ========================= */
 
 searchForm.addEventListener("submit", function (event) {
-
     event.preventDefault();
 
     const city = cityInput.value.trim();
 
     if (!city) {
-
         showError("Please enter a city name.");
-
         return;
     }
 
     loadWeather(city);
-
 });
 
 
-/* CELSIUS */
+/* =========================
+   CELSIUS
+   ========================= */
 
 celsiusButton.addEventListener("click", function () {
-
     if (currentUnit === "C") {
         return;
     }
@@ -63,20 +66,19 @@ celsiusButton.addEventListener("click", function () {
     currentUnit = "C";
 
     celsiusButton.classList.add("active");
-
     fahrenheitButton.classList.remove("active");
 
     if (currentWeather) {
         displayWeather(currentWeather);
     }
-
 });
 
 
-/* FAHRENHEIT */
+/* =========================
+   FAHRENHEIT
+   ========================= */
 
 fahrenheitButton.addEventListener("click", function () {
-
     if (currentUnit === "F") {
         return;
     }
@@ -84,36 +86,42 @@ fahrenheitButton.addEventListener("click", function () {
     currentUnit = "F";
 
     fahrenheitButton.classList.add("active");
-
     celsiusButton.classList.remove("active");
 
     if (currentWeather) {
         displayWeather(currentWeather);
     }
-
 });
 
 
-/* LOAD WEATHER */
+/* =========================
+   LOAD WEATHER
+   ========================= */
 
 async function loadWeather(city) {
-
     showLoading();
 
     try {
-
         const response = await fetch(
             `/api/weather?city=${encodeURIComponent(city)}`
         );
 
-        const data = await response.json();
+        let data;
+
+        try {
+            data = await response.json();
+        } catch {
+            throw new Error("The server returned an invalid response.");
+        }
 
         if (!response.ok) {
-
             throw new Error(
-                data.error || "Unable to load weather."
+                data.error || "Unable to find weather for that city."
             );
+        }
 
+        if (!data.main || !data.weather || !data.sys) {
+            throw new Error("The weather data is incomplete.");
         }
 
         currentWeather = data;
@@ -121,247 +129,277 @@ async function loadWeather(city) {
         displayWeather(data);
 
     } catch (error) {
-
         console.error(error);
 
-        showError(error.message);
-
+        showError(
+            error.message ||
+            "Something went wrong. Please try again."
+        );
     }
-
 }
 
 
-/* DISPLAY WEATHER */
+/* =========================
+   DISPLAY WEATHER
+   ========================= */
 
 function displayWeather(data) {
-
     hideLoading();
-
     hideError();
 
     weatherCard.classList.remove("hidden");
-
     adviceCard.classList.remove("hidden");
-
 
     cityName.textContent =
         `${data.name}, ${data.sys.country}`;
 
-
     description.textContent =
         data.weather[0].description;
 
-
-    const iconCode =
-        data.weather[0].icon;
-
+    const iconCode = data.weather[0].icon;
 
     weatherIcon.src =
         `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
 
-
     weatherIcon.alt =
         data.weather[0].description;
 
-
     let temp = data.main.temp;
-
     let feels = data.main.feels_like;
 
-
     if (currentUnit === "F") {
-
         temp = celsiusToFahrenheit(temp);
-
         feels = celsiusToFahrenheit(feels);
-
     }
-
 
     temperature.textContent =
         `${Math.round(temp)}°${currentUnit}`;
 
-
     feelsLike.textContent =
         `${Math.round(feels)}°${currentUnit}`;
-
 
     humidity.textContent =
         `${data.main.humidity}%`;
 
-
     wind.textContent =
         `${data.wind.speed} m/s`;
-
 
     pressure.textContent =
         `${data.main.pressure} hPa`;
 
+    sunrise.textContent =
+        formatTime(data.sys.sunrise);
+
+    sunset.textContent =
+        formatTime(data.sys.sunset);
+
+    lastUpdated.textContent =
+        new Date().toLocaleTimeString();
 
     generateSmartAdvice(data);
-
 }
 
 
-/* SMART ADVICE ENGINE */
+/* =========================
+   SMART WEATHER ADVICE
+   ========================= */
 
 function generateSmartAdvice(data) {
 
-    const temp = data.main.temp;
-
-    const feels = data.main.feels_like;
+    const temperatureC = data.main.temp;
+    const feelsLikeC = data.main.feels_like;
 
     const humidityValue = data.main.humidity;
-
     const windSpeed = data.wind.speed;
 
-    const weatherCondition =
+    const condition =
         data.weather[0].main.toLowerCase();
-
-    const descriptionText =
-        data.weather[0].description.toLowerCase();
 
 
     const isRain =
-        weatherCondition === "rain" ||
-        weatherCondition === "drizzle";
-
+        condition === "rain" ||
+        condition === "drizzle";
 
     const isThunderstorm =
-        weatherCondition === "thunderstorm";
-
+        condition === "thunderstorm";
 
     const isSnow =
-        weatherCondition === "snow";
-
+        condition === "snow";
 
     const isClear =
-        weatherCondition === "clear";
-
+        condition === "clear";
 
     const isCloudy =
-        weatherCondition === "clouds";
+        condition === "clouds";
 
 
-    /* CLOTHING */
+    /*
+        FEELS-LIKE temperature is used for clothing
+        because it better represents how the weather
+        actually feels to a person.
+    */
+
+    const clothingTemp = feelsLikeC;
 
     const clothes = [];
 
 
-    if (temp < 5) {
+    /* =========================
+       FREEZING / EXTREME COLD
+       ========================= */
 
-        clothes.push("🧥 Heavy insulated coat");
+    if (clothingTemp < 0) {
 
-        clothes.push("🧶 Warm sweater or thermal layer");
-
+        clothes.push("🧥 Heavy insulated winter coat");
+        clothes.push("🧶 Thermal base layer");
+        clothes.push("👕 Warm sweater or fleece");
         clothes.push("👖 Thick trousers");
-
         clothes.push("🧦 Thick warm socks");
-
-        clothes.push("🥾 Insulated boots");
-
+        clothes.push("🥾 Insulated waterproof boots");
         clothes.push("🧤 Gloves");
-
         clothes.push("🧣 Scarf");
+        clothes.push("🧢 Warm winter hat");
 
+    }
+
+
+    /* =========================
+       VERY COLD
+       ========================= */
+
+    else if (clothingTemp < 5) {
+
+        clothes.push("🧥 Heavy winter coat");
+        clothes.push("🧶 Warm sweater");
+        clothes.push("👖 Thick trousers or jeans");
+        clothes.push("🧦 Warm socks");
+        clothes.push("🥾 Boots or closed shoes");
+        clothes.push("🧤 Gloves");
+        clothes.push("🧣 Scarf");
         clothes.push("🧢 Warm hat");
 
     }
 
-    else if (temp < 12) {
+
+    /* =========================
+       COLD
+       ========================= */
+
+    else if (clothingTemp < 12) {
 
         clothes.push("🧥 Warm jacket or coat");
-
         clothes.push("👕 Long-sleeve shirt");
-
         clothes.push("👖 Long trousers or jeans");
-
-        clothes.push("🧦 Normal or warm socks");
-
+        clothes.push("🧦 Warm socks");
         clothes.push("🥾 Boots or closed shoes");
 
     }
 
-    else if (temp < 18) {
+
+    /* =========================
+       COOL
+       ========================= */
+
+    else if (clothingTemp < 18) {
 
         clothes.push("🧥 Light jacket or hoodie");
-
         clothes.push("👕 Long-sleeve shirt");
-
         clothes.push("👖 Jeans or long trousers");
-
-        clothes.push("👟 Closed sneakers");
-
         clothes.push("🧦 Normal socks");
+        clothes.push("👟 Closed sneakers");
 
     }
 
-    else if (temp < 25) {
 
-        clothes.push("👕 T-shirt or light long-sleeve shirt");
+    /* =========================
+       COMFORTABLE
+       ========================= */
 
+    else if (clothingTemp < 25) {
+
+        clothes.push("👕 T-shirt or light shirt");
         clothes.push("👖 Jeans, chinos, or lightweight trousers");
-
         clothes.push("👟 Sneakers or comfortable shoes");
-
         clothes.push("🧦 Lightweight socks");
 
     }
 
-    else if (temp < 32) {
+
+    /* =========================
+       WARM
+       ========================= */
+
+    else if (clothingTemp < 30) {
 
         clothes.push("👕 Lightweight breathable shirt");
-
         clothes.push("🩳 Shorts or lightweight trousers");
-
         clothes.push("👟 Breathable sneakers or sandals");
-
         clothes.push("🧢 Cap or hat");
-
         clothes.push("🕶️ Sunglasses");
 
     }
+
+
+    /* =========================
+       HOT
+       ========================= */
+
+    else if (clothingTemp < 35) {
+
+        clothes.push("👕 Very lightweight breathable clothing");
+        clothes.push("🩳 Loose shorts or lightweight trousers");
+        clothes.push("👟 Breathable shoes or sandals");
+        clothes.push("🧢 Hat or cap");
+        clothes.push("🕶️ Sunglasses");
+        clothes.push("💧 Carry water");
+
+    }
+
+
+    /* =========================
+       EXTREME HEAT
+       ========================= */
 
     else {
 
-        clothes.push("👕 Very lightweight breathable clothing");
-
+        clothes.push("👕 Very lightweight loose clothing");
         clothes.push("🩳 Loose shorts or lightweight trousers");
-
         clothes.push("👟 Breathable sandals or shoes");
-
-        clothes.push("🧢 Hat or cap");
-
+        clothes.push("🧢 Wide-brimmed hat or cap");
         clothes.push("🕶️ Sunglasses");
+        clothes.push("💧 Carry plenty of water");
 
     }
 
 
-    /* RAIN */
+    /* =========================
+       RAIN
+       ========================= */
 
     if (isRain) {
 
         clothes.push("☔ Carry an umbrella");
-
         clothes.push("🧥 Waterproof or water-resistant jacket");
-
         clothes.push("🥾 Water-resistant shoes or boots");
 
     }
 
 
-    /* SNOW */
+    /* =========================
+       SNOW
+       ========================= */
 
     if (isSnow) {
 
         clothes.push("🥾 Waterproof insulated boots");
-
         clothes.push("🧤 Waterproof gloves");
 
     }
 
 
-    /* WIND */
+    /* =========================
+       STRONG WIND
+       ========================= */
 
     if (windSpeed >= 8) {
 
@@ -370,17 +408,27 @@ function generateSmartAdvice(data) {
     }
 
 
-    /* HUMIDITY */
+    /* =========================
+       HUMIDITY
+       ========================= */
 
-    if (humidityValue >= 80 && temp >= 20) {
+    if (
+        humidityValue >= 80 &&
+        temperatureC >= 20
+    ) {
 
-        clothes.push("💧 Choose breathable fabrics because it may feel humid");
+        clothes.push(
+            "💧 Choose breathable fabrics because the air is humid"
+        );
 
     }
 
 
-    clothingAdvice.innerHTML = "";
+    /* =========================
+       DISPLAY CLOTHING
+       ========================= */
 
+    clothingAdvice.innerHTML = "";
 
     clothes.forEach(function (item) {
 
@@ -393,50 +441,66 @@ function generateSmartAdvice(data) {
     });
 
 
-    /* WEATHER MEANING */
+    /* =========================
+       WEATHER MEANING
+       ========================= */
 
-    let meaning = "";
+    let meaning;
 
 
-    if (temp < 5) {
+    if (clothingTemp < 0) {
 
         meaning =
-            "It is very cold outside. The temperature can feel uncomfortable quickly, so warm layers are important.";
+            "It feels freezing outside. Prolonged exposure can be uncomfortable and potentially dangerous, so warm layers and protection for exposed skin are important.";
 
     }
 
-    else if (temp < 12) {
+    else if (clothingTemp < 5) {
 
         meaning =
-            "It is cold enough that most people will feel uncomfortable without a jacket or warm outer layer.";
+            "It feels very cold outside. A proper winter coat and several warm layers are recommended.";
 
     }
 
-    else if (temp < 18) {
+    else if (clothingTemp < 12) {
 
         meaning =
-            "It is cool outside. A light jacket or hoodie should make the conditions comfortable.";
+            "It feels cold outside. Most people will be more comfortable wearing a warm jacket or coat.";
 
     }
 
-    else if (temp < 25) {
+    else if (clothingTemp < 18) {
 
         meaning =
-            "The temperature is generally comfortable. Normal everyday clothing should be enough.";
+            "It feels cool outside. A light jacket or hoodie should keep you comfortable.";
 
     }
 
-    else if (temp < 32) {
+    else if (clothingTemp < 25) {
 
         meaning =
-            "It is warm to hot outside. Lightweight clothing will help you stay comfortable.";
+            "The temperature feels comfortable for most everyday activities.";
+
+    }
+
+    else if (clothingTemp < 30) {
+
+        meaning =
+            "It feels warm outside. Lightweight clothing should be comfortable for most people.";
+
+    }
+
+    else if (clothingTemp < 35) {
+
+        meaning =
+            "It feels hot outside. Lightweight breathable clothing and regular hydration are recommended.";
 
     }
 
     else {
 
         meaning =
-            "It is very hot outside. Heat can become uncomfortable quickly, especially during physical activity.";
+            "It feels extremely hot outside. Try to avoid prolonged exposure to the heat, stay hydrated, and seek shade when possible.";
 
     }
 
@@ -452,7 +516,7 @@ function generateSmartAdvice(data) {
     if (isCloudy) {
 
         meaning +=
-            " Cloud cover may reduce direct sunlight, so it can feel slightly cooler.";
+            " Cloud cover reduces direct sunlight and may make the conditions feel cooler.";
 
     }
 
@@ -460,7 +524,7 @@ function generateSmartAdvice(data) {
     if (isRain) {
 
         meaning +=
-            " Rain means staying dry should be a priority.";
+            " Rain is present, so keeping yourself and your shoes dry is important.";
 
     }
 
@@ -468,7 +532,7 @@ function generateSmartAdvice(data) {
     if (isSnow) {
 
         meaning +=
-            " Snow and cold conditions require additional protection.";
+            " Snow is present, so warm and water-resistant clothing is recommended.";
 
     }
 
@@ -476,9 +540,149 @@ function generateSmartAdvice(data) {
     weatherMeaning.textContent = meaning;
 
 
-    /* OUTDOOR ADVICE */
+    /* =========================
+       HUMIDITY
+       ========================= */
 
-    let outdoor = "";
+    if (temperatureC <= 5) {
+
+        if (humidityValue >= 80) {
+
+            humidityAdvice.textContent =
+                "Humidity is very high, but because the temperature is cold, the main concern is cold exposure rather than heat discomfort.";
+
+        }
+
+        else if (humidityValue >= 50) {
+
+            humidityAdvice.textContent =
+                "Humidity is moderate to high. In cold conditions, damp clothing can make you feel colder, so staying dry is important.";
+
+        }
+
+        else {
+
+            humidityAdvice.textContent =
+                "The air is relatively dry for these cold conditions. Protect exposed skin from the cold and wind.";
+
+        }
+
+    }
+
+    else if (temperatureC < 18) {
+
+        if (humidityValue < 30) {
+
+            humidityAdvice.textContent =
+                "The air is quite dry. You may notice dry skin or throat in these cooler conditions.";
+
+        }
+
+        else if (humidityValue < 60) {
+
+            humidityAdvice.textContent =
+                "Humidity is at a comfortable level for most people.";
+
+        }
+
+        else {
+
+            humidityAdvice.textContent =
+                "Humidity is moderately high. Damp conditions can make cool weather feel less comfortable.";
+
+        }
+
+    }
+
+    else {
+
+        if (humidityValue < 30) {
+
+            humidityAdvice.textContent =
+                "The air is quite dry. You may notice dry skin or throat, especially during longer outdoor activities.";
+
+        }
+
+        else if (humidityValue < 60) {
+
+            humidityAdvice.textContent =
+                "Humidity is at a comfortable level for most people.";
+
+        }
+
+        else if (humidityValue < 80) {
+
+            humidityAdvice.textContent =
+                "Humidity is moderately high. Warm weather may feel more uncomfortable than the temperature alone suggests.";
+
+        }
+
+        else {
+
+            humidityAdvice.textContent =
+                "Humidity is very high. Sweat evaporates more slowly, which can make warm weather feel significantly more uncomfortable.";
+
+        }
+
+    }
+
+
+    /* =========================
+       WIND
+       ========================= */
+
+    if (windSpeed < 2) {
+
+        windAdvice.textContent =
+            "The air is mostly calm with very little noticeable wind.";
+
+    }
+
+    else if (windSpeed < 6) {
+
+        windAdvice.textContent =
+            "There is a light breeze. Wind should not significantly affect most outdoor plans.";
+
+    }
+
+    else if (windSpeed < 10) {
+
+        if (temperatureC <= 5) {
+
+            windAdvice.textContent =
+                "The wind is noticeable and can make cold conditions feel significantly colder. A wind-resistant outer layer is recommended.";
+
+        }
+
+        else {
+
+            windAdvice.textContent =
+                "The wind is noticeable. A light outer layer may make you more comfortable.";
+
+        }
+
+    }
+
+    else if (windSpeed < 15) {
+
+        windAdvice.textContent =
+            "Strong wind is present. It can make the temperature feel colder and may make some outdoor activities uncomfortable.";
+
+    }
+
+    else {
+
+        windAdvice.textContent =
+            "Very strong wind is present. Consider avoiding unnecessary outdoor activities.";
+
+    }
+
+
+    /* =========================
+       OUTDOOR ADVICE
+       ========================= */
+
+    let outdoor;
 
 
     if (isThunderstorm) {
@@ -488,31 +692,41 @@ function generateSmartAdvice(data) {
 
     }
 
-    else if (isSnow && temp <= 0) {
+    else if (clothingTemp < 0) {
 
         outdoor =
-            "⚠️ Very cold conditions combined with snow can make outdoor travel difficult. Dress warmly and consider limiting unnecessary time outside.";
+            "🥶 Freezing conditions are present. Avoid prolonged outdoor exposure and dress in several warm layers.";
 
     }
 
-    else if (isRain && windSpeed >= 10) {
+    else if (clothingTemp < 5) {
 
         outdoor =
-            "⚠️ Rain and strong wind can make outdoor conditions unpleasant and potentially hazardous. Consider postponing non-essential outdoor activities.";
+            "❄️ It is very cold outside. Outdoor activity is possible with proper winter clothing, but limit prolonged exposure.";
 
     }
 
-    else if (temp >= 35) {
+    else if (temperatureC >= 35) {
 
         outdoor =
-            "⚠️ It is very hot. Limit prolonged outdoor activity, seek shade, and drink plenty of water.";
+            "🥵 Extreme heat is present. Avoid prolonged outdoor activity, seek shade, drink water, and avoid the hottest part of the day.";
 
     }
 
-    else if (temp <= 0) {
+    else if (temperatureC >= 30) {
 
         outdoor =
-            "⚠️ Freezing conditions require proper warm clothing. Limit unnecessary outdoor exposure.";
+            "🔥 It is hot outside. Outdoor activity is possible, but stay hydrated, take breaks, and seek shade.";
+
+    }
+
+    else if (
+        isRain &&
+        windSpeed >= 10
+    ) {
+
+        outdoor =
+            "⚠️ Rain combined with strong wind can make outdoor conditions unpleasant and potentially hazardous.";
 
     }
 
@@ -520,6 +734,13 @@ function generateSmartAdvice(data) {
 
         outdoor =
             "☔ You can go outside, but bring an umbrella and wear water-resistant footwear.";
+
+    }
+
+    else if (windSpeed >= 15) {
+
+        outdoor =
+            "⚠️ Very strong wind may make outdoor conditions unsafe or uncomfortable. Consider staying indoors.";
 
     }
 
@@ -531,51 +752,56 @@ function generateSmartAdvice(data) {
     }
 
 
-    if (humidityValue >= 85 && temp >= 25) {
-
-        outdoor +=
-            " High humidity may make the temperature feel more uncomfortable.";
-
-    }
-
-
     outdoorAdvice.textContent = outdoor;
 
 
-    /* ACTIVITY */
+    /* =========================
+       ACTIVITY
+       ========================= */
 
-    let activity = "";
+    let activity;
 
 
     if (isThunderstorm) {
 
         activity =
-            "🏠 Indoor activities are recommended. Avoid outdoor sports.";
+            "🏠 Indoor activities are recommended. Avoid outdoor sports during thunderstorms.";
 
     }
 
-    else if (temp >= 35) {
+    else if (clothingTemp < 0) {
 
         activity =
-            "🧘 Light activities are better. Avoid intense outdoor exercise during the hottest hours.";
+            "🏠 Indoor activities are preferable. If you must go outside, keep outdoor time limited and wear proper winter protection.";
 
     }
 
-    else if (temp <= 5) {
+    else if (temperatureC >= 35) {
 
         activity =
-            "🚶 Outdoor activity is possible with proper warm clothing, but avoid staying outside for long periods.";
+            "🧘 Light indoor or low-intensity activities are better. Avoid intense outdoor exercise during extreme heat.";
+
+    }
+
+    else if (temperatureC >= 30) {
+
+        activity =
+            "🚶 Light outdoor activities are possible, preferably during cooler parts of the day. Stay hydrated.";
 
     }
 
     else if (isRain) {
 
         activity =
-            "☔ Short outdoor activities are okay with rain protection. Indoor activities may be more comfortable.";
+            "☔ Short outdoor activities are possible with rain protection. Indoor activities may be more comfortable.";
 
     }
 
-    else if (temp >= 18 && temp < 28 && windSpeed < 8) {
+    else if (
+        temperatureC >= 18 &&
+        temperatureC < 28 &&
+        windSpeed < 8
+    ) {
 
         activity =
             "🏃 Great conditions for walking, running, sports, or other outdoor activities.";
@@ -591,20 +817,35 @@ function generateSmartAdvice(data) {
 
 
     activityAdvice.textContent = activity;
-
 }
 
 
-/* CONVERT TEMPERATURE */
+/* =========================
+   CELSIUS → FAHRENHEIT
+   ========================= */
 
 function celsiusToFahrenheit(celsius) {
-
     return (celsius * 9 / 5) + 32;
-
 }
 
 
-/* LOADING */
+/* =========================
+   UNIX TIME → CLOCK TIME
+   ========================= */
+
+function formatTime(timestamp) {
+
+    return new Date(timestamp * 1000)
+        .toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+}
+
+
+/* =========================
+   LOADING
+   ========================= */
 
 function showLoading() {
 
@@ -615,18 +856,17 @@ function showLoading() {
     adviceCard.classList.add("hidden");
 
     errorMessage.classList.add("hidden");
-
 }
 
 
 function hideLoading() {
-
     loading.classList.add("hidden");
-
 }
 
 
-/* ERROR */
+/* =========================
+   ERROR
+   ========================= */
 
 function showError(message) {
 
@@ -639,17 +879,16 @@ function showError(message) {
     errorMessage.textContent = message;
 
     errorMessage.classList.remove("hidden");
-
 }
 
 
 function hideError() {
-
     errorMessage.classList.add("hidden");
-
 }
 
 
-/* INITIAL WEATHER */
+/* =========================
+   INITIAL CITY
+   ========================= */
 
 loadWeather("Addis Ababa");

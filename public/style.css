@@ -460,4 +460,265 @@ footer {
         grid-template-columns: 1fr;
     }
 
-}
+}<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Weather Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header class="header">
+            <h1>🌤️ Weather Dashboard</h1>
+            <p>Understand the weather. Know what to wear.</p>
+        </header>
+
+
+        <form id="searchForm" class="search-form">
+
+            <input
+                id="cityInput"
+                type="text"
+                placeholder="Search for a city..."
+                autocomplete="off"
+                required
+            >
+
+            <button type="submit">
+                Search
+            </button>
+
+        </form>
+
+
+        <div class="controls">
+
+            <button
+                id="celsiusButton"
+                class="unit-button active"
+                type="button"
+            >
+                °C
+            </button>
+
+            <button
+                id="fahrenheitButton"
+                class="unit-button"
+                type="button"
+            >
+                °F
+            </button>
+
+        </div>
+
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Checking the weather...</p>
+        </div>
+
+
+        <div id="errorMessage" class="error hidden"></div>
+
+
+        <section id="weatherCard" class="weather-card hidden">
+
+            <div class="weather-top">
+
+                <div>
+                    <h2 id="cityName">--</h2>
+
+                    <p id="description">--</p>
+                </div>
+
+                <img
+                    id="weatherIcon"
+                    src=""
+                    alt="Weather icon"
+                >
+
+            </div>
+
+
+            <div class="temperature-container">
+
+                <span id="temperature">
+                    --°C
+                </span>
+
+                <p id="temperatureLabel">
+                    Current temperature
+                </p>
+
+            </div>
+
+
+            <div class="weather-details">
+
+                <div class="detail">
+                    <span class="detail-icon">🌡️</span>
+
+                    <div>
+                        <p>Feels Like</p>
+                        <strong id="feelsLike">--°C</strong>
+                    </div>
+                </div>
+
+
+                <div class="detail">
+                    <span class="detail-icon">💧</span>
+
+                    <div>
+                        <p>Humidity</p>
+                        <strong id="humidity">--%</strong>
+                    </div>
+                </div>
+
+
+                <div class="detail">
+                    <span class="detail-icon">💨</span>
+
+                    <div>
+                        <p>Wind</p>
+                        <strong id="wind">-- m/s</strong>
+                    </div>
+                </div>
+
+
+                <div class="detail">
+                    <span class="detail-icon">🔽</span>
+
+                    <div>
+                        <p>Pressure</p>
+                        <strong id="pressure">-- hPa</strong>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="extra-weather">
+
+                <div>
+                    <span>🌅</span>
+
+                    <div>
+                        <p>Sunrise</p>
+                        <strong id="sunrise">--</strong>
+                    </div>
+                </div>
+
+
+                <div>
+                    <span>🌇</span>
+
+                    <div>
+                        <p>Sunset</p>
+                        <strong id="sunset">--</strong>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="updated">
+                Last updated:
+                <span id="lastUpdated">--</span>
+            </div>
+
+        </section>
+
+
+        <section id="adviceCard" class="advice-card hidden">
+
+            <div class="advice-header">
+
+                <span>🧠</span>
+
+                <div>
+                    <h2>Smart Weather Advice</h2>
+
+                    <p>
+                        Turning weather numbers into useful advice
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="advice-section">
+
+                <h3>👕 What to Wear</h3>
+
+                <ul id="clothingAdvice"></ul>
+
+            </div>
+
+
+            <div class="advice-section">
+
+                <h3>🌤️ What It Means</h3>
+
+                <p id="weatherMeaning"></p>
+
+            </div>
+
+
+            <div class="advice-section">
+
+                <h3>💧 Humidity</h3>
+
+                <p id="humidityAdvice"></p>
+
+            </div>
+
+
+            <div class="advice-section">
+
+                <h3>🌬️ Wind</h3>
+
+                <p id="windAdvice"></p>
+
+            </div>
+
+
+            <div class="advice-section">
+
+                <h3>⚠️ Outdoor Advice</h3>
+
+                <p id="outdoorAdvice"></p>
+
+            </div>
+
+
+            <div class="advice-section">
+
+                <h3>🏃 Activity Recommendation</h3>
+
+                <p id="activityAdvice"></p>
+
+            </div>
+
+        </section>
+
+
+        <footer>
+            <p>Weather data provided by OpenWeatherMap</p>
+        </footer>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
